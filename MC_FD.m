@@ -29,7 +29,7 @@ vtFirst = sqrt(2*kB*InitialTemp/me); %1.8701e5 in m/s
 Tmn = 0.02*ps;
 
 % Simulation setup
-steps = 100; 
+steps = 20; 
 dt = nm/vtFirst; %5.347e-15s    
 Temp = zeros(Elec,1);
 TempNew = zeros(Elec,1);
@@ -369,8 +369,10 @@ rotate3d on
 J = q*rho/Elec*(vtNew);
 
 figure
-surf(x,y,J)     
+surf(x,y,J*1e15)     
 xlabel('x'),ylabel('y'),zlabel('Density')
 title('Density Map')
 rotate3d on
+
+
 

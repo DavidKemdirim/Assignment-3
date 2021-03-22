@@ -26,11 +26,10 @@ y = zeros(Elec,1)*nm; %need to make same length
 % Specifics
 InitialTemp = 300; % in [K]
 vtFirst = sqrt(2*kB*InitialTemp/me); %1.8701e5 in m/s
-% Tmn = 0.2*ps; 
 Tmn = 0.02*ps;
 
-% Simulation
-steps = 20; 
+% Simulation setup
+steps = 100; 
 dt = nm/vtFirst; %5.347e-15s    
 Temp = zeros(Elec,1);
 TempNew = zeros(Elec,1);
@@ -41,18 +40,26 @@ dx = zeros(Elec,1); % new x dif
 dy = zeros(Elec,1); % new y dif 
 
 % Electric Field Contribution
-Vx = .1; % V
-Ex = Vx/(xdim*nm); % V/m
-Fx = q*Ex; % N
-Vy = 0; % V
+Vx = .8; % V
+Vy = 0; % V y-values calculated but ignored since they are all zero
+
+% Ex = Vx/(xdim*nm); % V/m
 Ey = Vy/(ydim*nm); % V/m
+% E From previous parts:
+% Ex = 1e5; % V/m
+
+Fx = q*Ex; % N
 Fy = q*Ey; % N
+rho = 10^15;
 
-dvx = Fx*Tmn/me; % speed changes  from electric field 
+
+
+dvx = Fx*Tmn/me; % speed changes from electric field 
 dvy = Fy*Tmn/me;
-dxE = dvx*Tmn;
-dyE = dvy*Tmn;
+dxE = dvx*Tmn; % distance changes from electric field
+dyE = dvy*Tmn; 
 
+% Scatter Parameters
 on = 1;
 off = 0;
 scatter = on; % scattering on/off switch
@@ -62,6 +69,7 @@ p = (1 - exp(-dt/Tmn))/10; % probability for scatter threshold
 re = 0; % default rebound velocity factor
 % re = -0.5; % Bounces back at half its initial speed
 
+% 
 xbc = 0;
 xCompare = 0;
 ybc = 0;
@@ -72,7 +80,7 @@ for i = 1:steps
     if i == 1
         t(i,:) = dt;
         Temp(:,i) = InitialTemp;
-        vt = vtFirst;        
+        vtNew(:,i) = vtFirst;        
         
         Boxes = {};
         
@@ -86,17 +94,17 @@ for i = 1:steps
 % %         Boxes{2}.BC = 0.0; 
 
         %2nd set of BCs
-        Boxes{1}.X = [0.8 1.2]*100*nm; %top box
+        Boxes{1}.X = [0.8 1.2]*100*nm; % top box
         Boxes{1}.Y = [0.6 1.0]*100*nm;
 %         Boxes{1}.BC = 0.0;
         
-        Boxes{2}.X = [0.8 1.2]*100*nm; %bottom box
+        Boxes{2}.X = [0.8 1.2]*100*nm; % bottom box
         Boxes{2}.Y = [0.0 0.4]*100*nm;
 %         Boxes{2}.BC = 0.0;
         
         prev = -1; % check for if boundaries were passed
         e=1;
-        while e <= Elec %random positions for each particle
+        while e <= Elec % random positions for each particle
                         
             randx = round(rand*xdim)*nm;
             randy = round(rand*ydim)*nm;
@@ -141,7 +149,7 @@ for i = 1:steps
 
                     if r(1,e) < p % check each electron for scatter %
 
-                        vtNew(e,i) = vt+randn*vt/sqrt(2);
+                        vtNew(e,i) = vtFirst+randn*vtFirst/sqrt(2);
                         theta = rand*360; % random angle in deg
                         dz(e,i) = vtNew(e,i)*Tmn; % straight path
                         dx(e,i) = sind(theta)*dz(e,i) + dxE; % new x difference
@@ -171,6 +179,7 @@ for i = 1:steps
                         x(e,i) = x(e,i-1) + dx(e,i); 
                         y(e,i) = y(e,i-1) + dy(e,i);
     %                     prev = -1;
+                        vtNew(e,i) = vtNew(e,i-1);
                         Temp(e,i) = Temp(e,i-1);
                     end
 
@@ -185,7 +194,7 @@ for i = 1:steps
                     x(e,i) = x(e,i-1) + dx(e,i); 
                     y(e,i) = y(e,i-1) + dy(e,i);
                 end
-        %             vtNew = vt;
+                    vtNew(e,i) = vtNew(e,i-1);
                     Temp(e,i) = Temp(e,i-1);
 
             end
@@ -262,8 +271,8 @@ for i = 1:steps
              
         plot(x(e,:),y(e,:));   
         grid on;
-        hold on; 
-        
+        hold on;     
+        pan on
         
     end
     %box plot
@@ -280,36 +289,50 @@ for i = 1:steps
     ylabel('Y (m)')
     title(['Time Passed t: ', num2str(t(i)/ps), ...
         'ps Collsions: ', num2str(collide)]) 
-          
-   
-    if mod(steps,10) == 0
-        pause(0.01)
-    end
+    pan on
+       
+           
+%     if mod(steps,5) == 0
+%         pause(0.01)
+%     end
 end
 
 % 1c-ii) Temp plot  
+figure
+plot(t(:,1),(mean(Temp)));
+grid on;
+hold on;
 
-        figure(2)
-        plot(t(:,1),(mean(Temp)));
-        grid on;
-        hold on;
-    
-    xlabel('Time (s)')
-    ylabel('Temperature (K)')
-    title(['Average Temperature: ', num2str(mean(Temp(:,i))), ...
-        'K Max T: ', num2str(max(Temp,[],'all')),'K Min T: ',...
-        num2str(min(Temp,[],'all')),'K']) % change T
+xlabel('Time (s)')
+ylabel('Temperature (K)')
+title(['Average Temperature: ', num2str(mean(Temp(:,i))), ...
+    'K Max T: ', num2str(max(Temp,[],'all')),'K Min T: ',...
+    num2str(min(Temp,[],'all')),'K']) 
 
 display('Seconds Passed', num2str(t(i)));
-finalTemp = num2str(mean(Temp(:,i)))
+finalTemp = num2str(mean(Temp(:,i)));
 
-% scale = sqrt(kB*InitialTemp/me);
-% h = scale*chi2rnd(3,1,10000); 
-% figure(3)
-% histogram(vtNew,10)
-% xlabel('Thermal Velocity (m/s)')
-% ylabel('Count')
-% title(['Velocity Distribution - Average Velocity: ',...
-%     num2str(mean([mean(h),median(h)])/2), ' m/s']) 
+Jx = q*rho/Elec*sum(vtNew);
 
-pan on
+figure
+plot(t(:,1),Jx);
+grid on;
+hold on;
+xlabel('Time (s)')
+ylabel('Current Density (A/m)')
+title('Current Density over Time')
+
+figure
+surf(x,y,Temp)     
+xlabel('x'),ylabel('y'),zlabel('Temperature (K)')
+title('Temperature Map')
+rotate3d on
+
+J = q*rho/Elec*(vtNew);
+
+figure
+surf(x,y,J)     
+xlabel('x'),ylabel('y'),zlabel('Density')
+title('Density Map')
+rotate3d on
+

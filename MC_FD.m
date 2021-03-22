@@ -29,7 +29,7 @@ vtFirst = sqrt(2*kB*InitialTemp/me); %1.8701e5 in m/s
 Tmn = 0.02*ps;
 
 % Simulation setup
-steps = 20; 
+steps = 100; 
 dt = nm/vtFirst; %5.347e-15s    
 Temp = zeros(Elec,1);
 TempNew = zeros(Elec,1);
@@ -41,10 +41,14 @@ dy = zeros(Elec,1); % new y dif
 
 % Electric Field Contribution
 Vx = .1; % V
-Ex = Vx/(xdim*nm); % V/m
-Fx = q*Ex; % N
 Vy = 0; % V y-values calculated but ignored since they are all zero
+
+% Ex = Vx/(xdim*nm); % V/m
 Ey = Vy/(ydim*nm); % V/m
+% E From previous parts:
+Ex = 1e6; % V/m
+
+Fx = q*Ex; % N
 Fy = q*Ey; % N
 rho = 10^15;
 
@@ -52,7 +56,6 @@ dvx = Fx*Tmn/me; % speed changes from electric field
 dvy = Fy*Tmn/me;
 dxE = dvx*Tmn; % distance changes from electric field
 dyE = dvy*Tmn; 
-
 
 % Scatter Parameters
 on = 1;
@@ -266,16 +269,17 @@ for i = 1:steps
              
         plot(x(e,:),y(e,:));   
         grid on;
-        hold on;         
+        hold on;     
+        pan on
         
     end
     %box plot
-%     plot(bx1,by1,'k')
-%     plot(bx1,by2,'k')
-%     plot(bx2,by1,'k')
-%     plot(bx2,by2,'k')
-%     plot(bx3,by3,'k')
-%     plot(bx3,by4,'k')
+    plot(bx1,by1,'k')
+    plot(bx1,by2,'k')
+    plot(bx2,by1,'k')
+    plot(bx2,by2,'k')
+    plot(bx3,by3,'k')
+    plot(bx3,by4,'k')
 
     xlim([0 xdim*nm])
     ylim([0 ydim*nm])
@@ -283,6 +287,7 @@ for i = 1:steps
     ylabel('Y (m)')
     title(['Time Passed t: ', num2str(t(i)/ps), ...
         'ps Collsions: ', num2str(collide)]) 
+    pan on
        
            
 %     if mod(steps,5) == 0
@@ -291,7 +296,6 @@ for i = 1:steps
 end
 
 % 1c-ii) Temp plot  
-
 figure
 plot(t(:,1),(mean(Temp)));
 grid on;
@@ -306,15 +310,27 @@ title(['Average Temperature: ', num2str(mean(Temp(:,i))), ...
 display('Seconds Passed', num2str(t(i)));
 finalTemp = num2str(mean(Temp(:,i)));
 
-pan on
+Jx = q*rho/Elec*sum(vtNew);
 
+figure
+plot(t(:,1),Jx);
+grid on;
+hold on;
+xlabel('Time (s)')
+ylabel('Current Density (A/m)')
+title('Current Density over Time')
 
-Jx = q/p/Elec*sum(vtNew);
+figure
+surf(x,y,Temp)     
+xlabel('x'),ylabel('y'),zlabel('Temperature (K)')
+title('Temperature Map')
+rotate3d on
 
-    figure(3)
-    plot(t(:,1),Jx);
-    grid on;
-    hold on;
-    xlabel('Time (s)')
-    ylabel('Current Density (A/m)')
-    title('Current Density over Time')
+J = q*rho/Elec*(vtNew);
+
+figure
+surf(x,y,J)     
+xlabel('x'),ylabel('y'),zlabel('Density')
+title('Density Map')
+rotate3d on
+

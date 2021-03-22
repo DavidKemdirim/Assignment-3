@@ -236,6 +236,46 @@ for i = 1:steps
                     y(e,i) = y(e,i) - dy(e,i); 
 
                 end
+                
+                % Reflect off Boxes - Top then Bottom
+                if  Boxes{1}.X(1,1)<x(e,i) && x(e,i)<Boxes{1}.X(1,2) &&...
+                    Boxes{1}.Y(1,1)<y(e,i) && y(e,i)<Boxes{1}.Y(1,2) ||...
+                    Boxes{2}.X(1,1)<x(e,i) && x(e,i)<Boxes{2}.X(1,2) &&...
+                    Boxes{2}.Y(1,1)<y(e,i) && y(e,i)<Boxes{2}.Y(1,2)  
+                    
+
+                    if Boxes{1}.X(1,1)<x(e,i) && x(e,i)<Boxes{1}.X(1,2) &&...
+                       Boxes{1}.Y(1,1)<y(e,i) && y(e,i)<Boxes{1}.Y(1,2) 
+                        
+                        while Boxes{1}.X(1,1)<x(e,i) && x(e,i)<Boxes{1}.X(1,2) 
+                            x(e,i) = x(e,i) - dx(e,i)/5;
+                            prev = 0;
+                        end
+                   
+                        while Boxes{1}.Y(1,1)<y(e,i) && y(e,i)<Boxes{1}.Y(1,2) 
+                            y(e,i) = y(e,i) - dy(e,i)/5;
+                            prev = 0;
+                        end
+                        
+                    elseif Boxes{2}.X(1,1)<x(e,i) && x(e,i)<Boxes{2}.X(1,2) &&...
+                           Boxes{2}.Y(1,1)<y(e,i) && y(e,i)<Boxes{2}.Y(1,2)                           
+                        
+                        while Boxes{2}.X(1,1)<x(e,i) && x(e,i)<Boxes{2}.X(1,2)
+                            x(e,i) = x(e,i) - dx(e,i)/5;
+                            prev = 1;
+                        end
+                       
+                        while Boxes{2}.Y(1,1)<y(e,i) && y(e,i)<Boxes{2}.Y(1,2)
+                            y(e,i) = y(e,i) - dy(e,i)/5;
+                            prev = 1;
+                        end
+                        
+                    end
+            
+                    dy(e,i) = cosd(-theta)*dz(e,i); % reflecting y dif 
+                    y(e,i) = y(e,i) - dy(e,i); 
+
+                end
 
             end
         

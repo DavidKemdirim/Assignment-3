@@ -40,19 +40,17 @@ dx = zeros(Elec,1); % new x dif
 dy = zeros(Elec,1); % new y dif 
 
 % Electric Field Contribution
-Vx = .8; % V
+Vx = .1; % V
 Vy = 0; % V y-values calculated but ignored since they are all zero
 
 % Ex = Vx/(xdim*nm); % V/m
 Ey = Vy/(ydim*nm); % V/m
 % E From previous parts:
-% Ex = 1e5; % V/m
+Ex = 1e6; % V/m
 
 Fx = q*Ex; % N
 Fy = q*Ey; % N
 rho = 10^15;
-
-
 
 dvx = Fx*Tmn/me; % speed changes from electric field 
 dvy = Fy*Tmn/me;
@@ -238,6 +236,34 @@ for i = 1:steps
                     y(e,i) = y(e,i) - dy(e,i); 
 
                 end
+                
+                %Boxes
+                if y(e,i) < 0 || y(e,i) > ydim*nm % reflect off Box  
+                    Boxes{1}.X(1,1)<x(e,i) && x(e,i)<Boxes{1}.X(1,2) &&...
+               Boxes{1}.Y(1,1)<randy && randy<Boxes{1}.Y(1,2) ||...%first
+               Boxes{2}.X(1,1)<randx && randx<Boxes{2}.X(1,2) &&...
+               Boxes{2}.Y(1,1)<randy && randy<Boxes{2}.Y(1,2) %second box
+
+                    if y(e,i) < 0 && dy(e,i) < 0 
+                        
+                        while y(e,i) < 0 
+                            y(e,i) = y(e,i) - dy(e,i)/5;
+                            prev = 0;
+                        end
+                        
+                    elseif y(e,i) > ydim*nm && dy(e,i) > 0                            
+                        
+                        while y(e,i) > ydim*nm
+                            y(e,i) = y(e,i) - dy(e,i)/5;
+                            prev = 1;
+                        end
+                        
+                    end
+            
+                    dy(e,i) = cosd(-theta)*dz(e,i); % reflecting y dif 
+                    y(e,i) = y(e,i) - dy(e,i); 
+
+                end
 
             end
         
@@ -276,12 +302,12 @@ for i = 1:steps
         
     end
     %box plot
-%     plot(bx1,by1,'k')
-%     plot(bx1,by2,'k')
-%     plot(bx2,by1,'k')
-%     plot(bx2,by2,'k')
-%     plot(bx3,by3,'k')
-%     plot(bx3,by4,'k')
+    plot(bx1,by1,'k')
+    plot(bx1,by2,'k')
+    plot(bx2,by1,'k')
+    plot(bx2,by2,'k')
+    plot(bx3,by3,'k')
+    plot(bx3,by4,'k')
 
     xlim([0 xdim*nm])
     ylim([0 ydim*nm])
